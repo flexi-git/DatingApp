@@ -42,7 +42,7 @@ namespace API.Data
                 using var hmac = new HMACSHA512();
 
                 user.UserName = user.UserName.ToLower();
-                user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("P@ssword"));
+                user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("p@ssword"));
                 user.PasswordSalt = hmac.Key;
 
                 context.Users.Add(user);
