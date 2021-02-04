@@ -6,6 +6,7 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
+using API.Helpers;
 using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -28,32 +29,49 @@ namespace API.Controllers
             _userRepository = userRepository;
         }
 
-        // [HttpGet]
-        // public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
-        // {
-        //     var users = await _userRepository.GetUsersAsync();
+        // // // [HttpGet]
+        // // // public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
+        // // // {
+        // // //     var users = await _userRepository.GetUsersAsync();
 
-        //     var usersToReturn = _mapper.Map<IEnumerable<MemberDto>>(users);
+        // // //     var usersToReturn = _mapper.Map<IEnumerable<MemberDto>>(users);
 
-        //     return Ok(usersToReturn);
-        // }
+        // // //     return Ok(usersToReturn);
+        // // // }
 
-        // [HttpGet("{username}")]
-        // public async Task<ActionResult<MemberDto>> GetUser(string username)
-        // {
-        //     var user = await _userRepository.GetUserByUsernameAsync(username);
+        // // // [HttpGet("{username}")]
+        // // // public async Task<ActionResult<MemberDto>> GetUser(string username)
+        // // // {
+        // // //     var user = await _userRepository.GetUserByUsernameAsync(username);
 
-        //     var userToReturn = _mapper.Map<MemberDto>(user);
-        //     return userToReturn;
-        // }
-
-
+        // // //     var userToReturn = _mapper.Map<MemberDto>(user);
+        // // //     return userToReturn;
+        // // // }
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsers([FromQuery]UserParams userParams)
         {
-            var users = await _userRepository.GetMembersAsync();
+            var user = await _userRepository.GetUserByUsernameAsync(User.GetUserName());
+            userParams.CurrentUsername = user.UserName;
+
+            if(string.IsNullOrEmpty(userParams.Gender))
+            {
+                ///// short single line if statement (same result)
+                // userParams.Gender = user.Gender == "male" ? "female" : "male";
+                if(user.Gender == "male")
+                {
+                    userParams.Gender = "female";
+                }
+                else
+                {
+                    userParams.Gender = "male";
+                }
+            }
+
+            var users = await _userRepository.GetMembersAsync(userParams);
+
+            Response.AddPaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
 
             return Ok(users);
         }
